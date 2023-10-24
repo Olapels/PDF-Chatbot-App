@@ -1,0 +1,5 @@
+langchain
+streamlit
+pytorch
+huggingface
+torch
