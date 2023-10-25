@@ -1,5 +1,6 @@
 langchain
 streamlit
-pytorch
 huggingface
 torch
+ctransformers
+faiss-cpu
