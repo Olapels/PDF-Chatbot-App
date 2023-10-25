@@ -10,6 +10,8 @@ from langchain.llms import CTransformers
 import os
 import time
 import torch
+from langchain.storage import InMemoryStore, LocalFileStore, RedisStore, UpstashRedisStore
+from langchain.embeddings import OpenAIEmbeddings, CacheBackedEmbeddings
 
 #to turn off parallelism errors
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -78,13 +80,17 @@ if option =='Yes':
         text_chunks = text_splitter.split_documents(text)
 
         # Convert the text chunks into embeddings
-        embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+        #embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+        underlying_embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+        fs = LocalFileStore("./cache/")
+
+        cached_embedder = CacheBackedEmbeddings.from_bytes_store(underlying_embeddings, fs)
 
         # Create a FAISS vector store from the embeddings
-        vec = FAISS()
-        vector_store = FAISS.from_documents(text_chunks, embeddings)
+        #vec = FAISS()
+        vector_store = FAISS.from_documents(text_chunks, cached_embedder)
 
-        vector_store.save_local(f"data/{theme}")
+        #vector_store.save_local(f"data/{theme}")
 
         # Create the RetrievalQA Chain
         chain = RetrievalQA.from_chain_type(llm=llm,
@@ -102,11 +108,18 @@ else:
     themes)
     # Convert the text chunks into embeddings
     st_1 = time.time()
-    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+    underlying_embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+    fs = LocalFileStore("./cache/")
+    cached_embedder = CacheBackedEmbeddings.from_bytes_store(underlying_embeddings, fs)
+
     st_2 = time.time() - st_1
     st.write(st_2)
+
+
     st_3 = time.time()
-    vector_store = FAISS(memory_usage_bytes = 2_000_000_000).load_local(f"data/{option_n}", embeddings)
+    vector_store = FAISS.from_documents(f"data/{option_n}", cached_embedder)
+
+    #vector_store = FAISS.load_local(f"data/{option_n}", embeddings)
     st_4 = time.time() - st_3
     st.write(f"Done loading vector {st_4} ")
     st_5 = time.time()
