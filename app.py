@@ -10,12 +10,14 @@ from langchain.llms import CTransformers
 import os
 import time
 import torch
+from langchain.storage import InMemoryStore, LocalFileStore, RedisStore, UpstashRedisStore
+from langchain.embeddings import OpenAIEmbeddings, CacheBackedEmbeddings
 
 #to turn off parallelism errors
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # Load the quantized llm from local dir(only non relative path)
-llm = CTransformers(model="/Users/user/Documents/testing_local_gpt/Run_llama2_local_cpu_upload/models/llama-2-7b-chat.ggmlv3.q2_K.bin",
+llm = CTransformers(model="/Users/user/Documents/testing_local_gpt/llama_online_v2/models/codellama-7b.Q2_K.gguf",
                   model_type="llama",
                   config={'max_new_tokens':140,
                           'temperature':0.01,
@@ -79,9 +81,13 @@ if option =='Yes':
 
         # Convert the text chunks into embeddings
         embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+        #underlying_embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+        #fs = LocalFileStore("./cache/")
+
+        #cached_embedder = CacheBackedEmbeddings.from_bytes_store(underlying_embeddings, fs)
 
         # Create a FAISS vector store from the embeddings
-        vec = FAISS()
+        #vec = FAISS()
         vector_store = FAISS.from_documents(text_chunks, embeddings)
 
         vector_store.save_local(f"data/{theme}")
@@ -103,10 +109,17 @@ else:
     # Convert the text chunks into embeddings
     st_1 = time.time()
     embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2', model_kwargs={'device':'cpu'})
+    #fs = LocalFileStore("./cache/")
+    #cached_embedder = CacheBackedEmbeddings.from_bytes_store(underlying_embeddings, fs)
+
     st_2 = time.time() - st_1
     st.write(st_2)
+
+
     st_3 = time.time()
-    vector_store = FAISS(memory_usage_bytes = 2_000_000_000).load_local(f"data/{option_n}", embeddings)
+    #vector_store = FAISS.from_documents(f"data/{option_n}", cached_embedder)
+
+    vector_store = FAISS.load_local(f"data/{option_n}", embeddings)
     st_4 = time.time() - st_3
     st.write(f"Done loading vector {st_4} ")
     st_5 = time.time()
