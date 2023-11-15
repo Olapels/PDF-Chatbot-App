@@ -48,7 +48,7 @@ wget https://huggingface.co/TheBloke/CodeLlama-7B-GGUF/blob/main/codellama-7b.Q2
 The underlying model used is the .gguf type quantization of the open source llama model by Meta which is free for commercial use up to a certain limit.
 
 ### Running the App
-in your terminal/command prompt run 
+in your terminal/command prompt (on the main project folder) run 
 ```
 streamlit run app.py
 ```
