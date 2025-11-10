@@ -26,11 +26,11 @@ clone the repo into your desired folder
 
 Using HTTPS
 ```
-git clone https://github.com/Olapels/llama_online_v2.git
+git clone https://github.com/Olapels/PDF-Chatbot-App.git
 ```
 Using CLI
 ```
-gh repo clone Olapels/llama_online_v2
+gh repo clone Olapels/PDF-Chatbot-App
 ```
 Install the required dependencies contained in requirements.txt
 ```
